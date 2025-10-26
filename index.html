@@ -1,62 +1,194 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CS2 Market Dashboard</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS2 Market Dashboard</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="style.css">
+
+<!-- Chart.js für Preis-Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- JS -->
+<script defer src="script.js"></script>
 </head>
 <body>
-  <header>
-    <h1>CS2 Market Dashboard</h1>
-    <p>Live Marktpreise für alle wichtigen CS2 Skins</p>
-  </header>
 
-  <section id="filters">
-    <input type="text" id="filterInput" placeholder="Nach Skin suchen...">
-    <select id="sortSelect">
-      <option value="price">Preis ↑</option>
-      <option value="volume">Volumen ↑</option>
-      <option value="median">Median ↑</option>
-    </select>
-    <label>
-      Kategorie:
-      <select id="categorySelect">
-        <option value="all">Alle</option>
-        <option value="rifle">Rifles</option>
-        <option value="pistol">Pistols</option>
-        <option value="sniper">Sniper</option>
-      </select>
-    </label>
-  </section>
+<!-- Header -->
+<header>
+  <h1>CS2 Market Dashboard</h1>
+  <p>Live Marktpreise für alle CS2-Skins mit Volumen, Median und Preisentwicklung</p>
+</header>
 
-  <section id="marketTableContainer">
-    <table id="marketTable">
-      <thead>
-        <tr>
-          <th>Skin</th>
-          <th>Preis</th>
-          <th>Volumen</th>
-          <th>Median</th>
-          <th>Link</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td colspan="5">Loading...</td></tr>
-      </tbody>
-    </table>
-  </section>
+<!-- Filterbereich -->
+<section id="filters">
+  <input type="text" id="filterInput" placeholder="Skin Name suchen...">
+  <select id="sortSelect">
+    <option value="price">Preis ↑</option>
+    <option value="volume">Volumen ↑</option>
+    <option value="median">Median ↑</option>
+  </select>
+  <select id="categorySelect">
+    <option value="all">Alle Kategorien</option>
+    <option value="rifle">Rifles</option>
+    <option value="pistol">Pistols</option>
+    <option value="sniper">Sniper</option>
+  </select>
+  <button id="refreshBtn">Aktualisieren</button>
+</section>
 
-  <section id="chartsContainer">
-    <h2>Preisverlauf (Demo Charts)</h2>
-    <canvas id="priceChart" width="800" height="200"></canvas>
-  </section>
+<!-- Tabelle für Skins -->
+<section id="marketTableContainer">
+  <table id="marketTable">
+    <thead>
+      <tr>
+        <th>Skin</th>
+        <th>Preis</th>
+        <th>Volumen</th>
+        <th>Median</th>
+        <th>Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="5">Lade Daten...</td></tr>
+    </tbody>
+  </table>
+</section>
 
-  <footer>
-    <p>CS2 Market Dashboard – Daten via Steam Community Market API</p>
-  </footer>
+<!-- Mini-Charts für Preisentwicklung -->
+<section id="chartsContainer">
+  <h2>Preisübersicht (Demo)</h2>
+  <canvas id="priceChart" width="900" height="300"></canvas>
+</section>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Footer -->
+<footer>
+  <p>CS2 Market Dashboard – Daten via Steam Community Market API</p>
+</footer>
+
+<script>
+  // ------------------------------
+  // Frontend-Logik für die Tabelle
+  // ------------------------------
+  const tableBody = document.querySelector("#marketTable tbody");
+  const filterInput = document.querySelector("#filterInput");
+  const sortSelect = document.querySelector("#sortSelect");
+  const categorySelect = document.querySelector("#categorySelect");
+  const refreshBtn = document.querySelector("#refreshBtn");
+
+  let currentData = [];
+
+  async function loadMarketData() {
+    tableBody.innerHTML = "<tr><td colspan='5'>Lade Daten...</td></tr>";
+    try {
+      const response = await fetch("/api/analyze.js");
+      const data = await response.json();
+
+      if (!data.success) {
+        tableBody.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten</td></tr>";
+        return;
+      }
+
+      currentData = data.items;
+      displayData(currentData);
+      renderChart(currentData);
+    } catch (err) {
+      console.error(err);
+      tableBody.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten</td></tr>";
+    }
+  }
+
+  function displayData(items) {
+    // Filter nach Name
+    let filtered = items.filter(item =>
+      item.name.toLowerCase().includes(filterInput.value.toLowerCase())
+    );
+
+    // Filter nach Kategorie (falls Kategorien im Backend zugewiesen werden)
+    const category = categorySelect.value;
+    if(category !== "all") {
+      filtered = filtered.filter(item => item.category === category);
+    }
+
+    // Sortierung
+    const sortBy = sortSelect.value;
+    filtered.sort((a,b) => {
+      const valA = parseFloat(a[sortBy]?.replace("€","").replace(",",".")) || 0;
+      const valB = parseFloat(b[sortBy]?.replace("€","").replace(",",".")) || 0;
+      return valA - valB;
+    });
+
+    // Tabelle aktualisieren
+    tableBody.innerHTML = "";
+    if(filtered.length === 0) {
+      tableBody.innerHTML = "<tr><td colspan='5'>Keine Daten gefunden</td></tr>";
+      return;
+    }
+
+    filtered.forEach(item => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.price}</td>
+        <td>${item.volume}</td>
+        <td>${item.median}</td>
+        <td><a href="${item.market_url}" target="_blank">Steam</a></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }
+
+  // ------------------------------
+  // Chart.js für Preisübersicht
+  // ------------------------------
+  function renderChart(items) {
+    const ctx = document.getElementById("priceChart").getContext("2d");
+    const labels = items.map(i => i.name);
+    const prices = items.map(i => parseFloat(i.price?.replace("€","").replace(",",".")) || 0);
+
+    // Vorherigen Chart zerstören, falls vorhanden
+    if(window.priceChartInstance) window.priceChartInstance.destroy();
+
+    window.priceChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Preis (€)',
+          data: prices,
+          backgroundColor: 'rgba(102,192,244,0.7)',
+          borderColor: 'rgba(102,192,244,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { mode: 'index', intersect: false }
+        },
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+  }
+
+  // ------------------------------
+  // Event-Listener
+  // ------------------------------
+  filterInput.addEventListener("input", () => displayData(currentData));
+  sortSelect.addEventListener("change", () => displayData(currentData));
+  categorySelect.addEventListener("change", () => displayData(currentData));
+  refreshBtn.addEventListener("click", loadMarketData);
+
+  // ------------------------------
+  // Initial Load
+  // ------------------------------
+  loadMarketData();
+</script>
+
 </body>
 </html>
