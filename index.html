@@ -4,25 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CS2 Market Dashboard</title>
-
-<!-- CSS -->
 <link rel="stylesheet" href="style.css">
-
-<!-- Chart.js für Preis-Charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- JS -->
 <script defer src="script.js"></script>
 </head>
 <body>
 
-<!-- Header -->
 <header>
   <h1>CS2 Market Dashboard</h1>
-  <p>Live Marktpreise für alle CS2-Skins mit Volumen, Median und Preisentwicklung</p>
+  <p>Alle CS2-Skins – Preise, Volumen, Median – automatisch alle 5 Minuten aktualisiert</p>
 </header>
 
-<!-- Filterbereich -->
 <section id="filters">
   <input type="text" id="filterInput" placeholder="Skin Name suchen...">
   <select id="sortSelect">
@@ -34,12 +26,11 @@
     <option value="all">Alle Kategorien</option>
     <option value="rifle">Rifles</option>
     <option value="pistol">Pistols</option>
-    <option value="sniper">Sniper</option>
+    <option value="sniper">Snipers</option>
   </select>
-  <button id="refreshBtn">Aktualisieren</button>
+  <button id="refreshBtn">Jetzt aktualisieren</button>
 </section>
 
-<!-- Tabelle für Skins -->
 <section id="marketTableContainer">
   <table id="marketTable">
     <thead>
@@ -57,138 +48,86 @@
   </table>
 </section>
 
-<!-- Mini-Charts für Preisentwicklung -->
 <section id="chartsContainer">
-  <h2>Preisübersicht (Demo)</h2>
+  <h2>Preisübersicht (Demo Chart)</h2>
   <canvas id="priceChart" width="900" height="300"></canvas>
 </section>
 
-<!-- Footer -->
 <footer>
   <p>CS2 Market Dashboard – Daten via Steam Community Market API</p>
 </footer>
 
 <script>
-  // ------------------------------
-  // Frontend-Logik für die Tabelle
-  // ------------------------------
-  const tableBody = document.querySelector("#marketTable tbody");
-  const filterInput = document.querySelector("#filterInput");
-  const sortSelect = document.querySelector("#sortSelect");
-  const categorySelect = document.querySelector("#categorySelect");
-  const refreshBtn = document.querySelector("#refreshBtn");
+const tableBody = document.querySelector("#marketTable tbody");
+const filterInput = document.querySelector("#filterInput");
+const sortSelect = document.querySelector("#sortSelect");
+const categorySelect = document.querySelector("#categorySelect");
+const refreshBtn = document.querySelector("#refreshBtn");
 
-  let currentData = [];
+let currentData = [];
 
-  async function loadMarketData() {
-    tableBody.innerHTML = "<tr><td colspan='5'>Lade Daten...</td></tr>";
-    try {
-      const response = await fetch("/api/analyze.js");
-      const data = await response.json();
-
-      if (!data.success) {
-        tableBody.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten</td></tr>";
-        return;
-      }
-
-      currentData = data.items;
-      displayData(currentData);
-      renderChart(currentData);
-    } catch (err) {
-      console.error(err);
+async function loadMarketData() {
+  tableBody.innerHTML = "<tr><td colspan='5'>Lade Daten...</td></tr>";
+  try {
+    const response = await fetch("/api/analyze.js");
+    const data = await response.json();
+    if(!data.success) {
       tableBody.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten</td></tr>";
-    }
-  }
-
-  function displayData(items) {
-    // Filter nach Name
-    let filtered = items.filter(item =>
-      item.name.toLowerCase().includes(filterInput.value.toLowerCase())
-    );
-
-    // Filter nach Kategorie (falls Kategorien im Backend zugewiesen werden)
-    const category = categorySelect.value;
-    if(category !== "all") {
-      filtered = filtered.filter(item => item.category === category);
-    }
-
-    // Sortierung
-    const sortBy = sortSelect.value;
-    filtered.sort((a,b) => {
-      const valA = parseFloat(a[sortBy]?.replace("€","").replace(",",".")) || 0;
-      const valB = parseFloat(b[sortBy]?.replace("€","").replace(",",".")) || 0;
-      return valA - valB;
-    });
-
-    // Tabelle aktualisieren
-    tableBody.innerHTML = "";
-    if(filtered.length === 0) {
-      tableBody.innerHTML = "<tr><td colspan='5'>Keine Daten gefunden</td></tr>";
       return;
     }
-
-    filtered.forEach(item => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${item.name}</td>
-        <td>${item.price}</td>
-        <td>${item.volume}</td>
-        <td>${item.median}</td>
-        <td><a href="${item.market_url}" target="_blank">Steam</a></td>
-      `;
-      tableBody.appendChild(row);
-    });
+    currentData = data.items;
+    displayData(currentData);
+    renderChart(currentData);
+  } catch(err) {
+    console.error(err);
+    tableBody.innerHTML = "<tr><td colspan='5'>Fehler beim Laden der Daten</td></tr>";
   }
+}
 
-  // ------------------------------
-  // Chart.js für Preisübersicht
-  // ------------------------------
-  function renderChart(items) {
-    const ctx = document.getElementById("priceChart").getContext("2d");
-    const labels = items.map(i => i.name);
-    const prices = items.map(i => parseFloat(i.price?.replace("€","").replace(",",".")) || 0);
+function displayData(items) {
+  let filtered = items.filter(item => item.name.toLowerCase().includes(filterInput.value.toLowerCase()));
+  const category = categorySelect.value;
+  if(category !== "all") filtered = filtered.filter(i => i.category === category);
 
-    // Vorherigen Chart zerstören, falls vorhanden
-    if(window.priceChartInstance) window.priceChartInstance.destroy();
+  const sortBy = sortSelect.value;
+  filtered.sort((a,b) => {
+    const valA = parseFloat(a[sortBy]?.replace("€","").replace(",",".")) || 0;
+    const valB = parseFloat(b[sortBy]?.replace("€","").replace(",",".")) || 0;
+    return valA - valB;
+  });
 
-    window.priceChartInstance = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Preis (€)',
-          data: prices,
-          backgroundColor: 'rgba(102,192,244,0.7)',
-          borderColor: 'rgba(102,192,244,1)',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-          tooltip: { mode: 'index', intersect: false }
-        },
-        scales: {
-          y: { beginAtZero: true }
-        }
-      }
-    });
-  }
+  tableBody.innerHTML = "";
+  if(filtered.length === 0) tableBody.innerHTML = "<tr><td colspan='5'>Keine Daten gefunden</td></tr>";
 
-  // ------------------------------
-  // Event-Listener
-  // ------------------------------
-  filterInput.addEventListener("input", () => displayData(currentData));
-  sortSelect.addEventListener("change", () => displayData(currentData));
-  categorySelect.addEventListener("change", () => displayData(currentData));
-  refreshBtn.addEventListener("click", loadMarketData);
+  filtered.forEach(item => {
+    const row = document.createElement("tr");
+    row.innerHTML = `<td>${item.name}</td><td>${item.price}</td><td>${item.volume}</td><td>${item.median}</td><td><a href="${item.market_url}" target="_blank">Steam</a></td>`;
+    tableBody.appendChild(row);
+  });
+}
 
-  // ------------------------------
-  // Initial Load
-  // ------------------------------
-  loadMarketData();
+function renderChart(items) {
+  const ctx = document.getElementById("priceChart").getContext("2d");
+  const labels = items.map(i => i.name);
+  const prices = items.map(i => parseFloat(i.price?.replace("€","").replace(",",".")) || 0);
+
+  if(window.priceChartInstance) window.priceChartInstance.destroy();
+
+  window.priceChartInstance = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Preis (€)', data:prices, backgroundColor:'rgba(102,192,244,0.7)', borderColor:'rgba(102,192,244,1)', borderWidth:1 }]},
+    options:{ responsive:true, plugins:{ legend:{display:false}, tooltip:{mode:'index',intersect:false}}, scales:{y:{beginAtZero:true}}}
+  });
+}
+
+// Events
+filterInput.addEventListener("input", () => displayData(currentData));
+sortSelect.addEventListener("change", () => displayData(currentData));
+categorySelect.addEventListener("change", () => displayData(currentData));
+refreshBtn.addEventListener("click", loadMarketData);
+
+// Initial load + Auto refresh alle 5 Minuten
+loadMarketData();
+setInterval(loadMarketData, 5 * 60 * 1000);
 </script>
 
-</body>
-</html>
