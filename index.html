@@ -6,7 +6,6 @@
 <title>CS2 Market Dashboard</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script defer src="script.js"></script>
 </head>
 <body>
 
@@ -49,7 +48,7 @@
 </section>
 
 <section id="chartsContainer">
-  <h2>Preisübersicht (Demo Chart)</h2>
+  <h2>Preisübersicht</h2>
   <canvas id="priceChart" width="900" height="300"></canvas>
 </section>
 
@@ -120,14 +119,13 @@ function renderChart(items) {
   });
 }
 
-// Events
 filterInput.addEventListener("input", () => displayData(currentData));
 sortSelect.addEventListener("change", () => displayData(currentData));
 categorySelect.addEventListener("change", () => displayData(currentData));
 refreshBtn.addEventListener("click", loadMarketData);
 
-// Initial load + Auto refresh alle 5 Minuten
 loadMarketData();
-setInterval(loadMarketData, 5 * 60 * 1000);
+setInterval(loadMarketData, 5*60*1000);
 </script>
-
+</body>
+</html>
