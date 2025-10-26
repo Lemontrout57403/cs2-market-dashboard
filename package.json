@@ -1,8 +1,6 @@
 {
   "name": "cs2-market-dashboard",
   "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "start": "vercel dev"
-  }
-}
+  "description": "Live Marktpreise für CS2 Skins",
+  "main": "index.html",
+  "scripts":
