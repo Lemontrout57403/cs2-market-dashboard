@@ -1,180 +1,62 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CS2 Market Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#071019;--card:#0f1720;--muted:#9aa6b2;--accent:#66c0f4;--good:#3fd38f;--bad:#ff6b6b}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(180deg,#071019,#061219);color:#cbd5e1}
-    .wrap{max-width:1100px;margin:20px auto;padding:18px}
-    .card{background:linear-gradient(180deg,var(--card),#071220);padding:14px;border-radius:10px;box-shadow:0 8px 24px rgba(2,6,23,0.6)}
-    header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-    .logo{background:linear-gradient(90deg,#1f2937,#0b1220);padding:10px;border-radius:8px}
-    textarea{width:600px;height:140px;padding:10px;border-radius:8px;border:1px solid #0b1220;background:#071019;color:#cbd5e1}
-    button{background:var(--accent);border:none;padding:8px 12px;border-radius:8px;color:#05212b;font-weight:700;cursor:pointer}
-    table{width:100%;border-collapse:collapse;margin-top:12px}
-    th,td{padding:10px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03)}
-    th{color:var(--muted);font-weight:600}
-    .price-good{color:var(--good)}
-    .price-bad{color:var(--bad)}
-    .mini-chart{width:120px;height:40px}
-    .row-click{cursor:pointer}
-    .small{font-size:12px;color:var(--muted)}
-    .filters{display:flex;gap:8px;align-items:center}
-    @media (max-width:900px){ textarea{width:100%} }
-  </style>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="logo"><strong style="color:var(--accent)">CS2</strong> Market Dashboard</div>
-      <div style="flex:1">
-        <h2 style="margin:0">Counter-Strike Item Watch — Live</h2>
-        <div class="small">Paste `market_hash_name` entries (one per line). Click <strong>Analyze</strong>.</div>
-      </div>
-    </header>
+  <header>
+    <h1>CS2 Market Dashboard</h1>
+    <p>Live Marktpreise für alle wichtigen CS2 Skins</p>
+  </header>
 
-    <div class="card" style="display:flex;gap:14px;flex-wrap:wrap">
-      <div style="flex:1">
-        <textarea id="itemsInput" placeholder="AK-47 | Redline (Field-Tested)&#10;M4A1-S | Printstream (Factory New)"></textarea>
-        <div class="small" style="margin-top:6px">Leave empty to use the sample list.</div>
-      </div>
-      <div style="width:240px;display:flex;flex-direction:column;gap:8px">
-        <label>Period
-          <select id="period">
-            <option value="1">24h</option>
-            <option value="7" selected>7d</option>
-            <option value="30">30d</option>
-          </select>
-        </label>
-        <label>Max items
-          <input id="limit" type="number" value="20" style="width:80px;padding:6px;border-radius:6px;border:none;background:#071019;color:#cbd5e1" />
-        </label>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
-          <button id="analyzeBtn">Analyze</button>
-          <button id="loadSamples">Load Samples</button>
-          <button id="exportCsv">Export CSV</button>
-          <div class="small" style="margin-top:6px">Deployed as a website (Vercel recommended). No account keys required.</div>
-        </div>
-      </div>
-    </div>
+  <section id="filters">
+    <input type="text" id="filterInput" placeholder="Nach Skin suchen...">
+    <select id="sortSelect">
+      <option value="price">Preis ↑</option>
+      <option value="volume">Volumen ↑</option>
+      <option value="median">Median ↑</option>
+    </select>
+    <label>
+      Kategorie:
+      <select id="categorySelect">
+        <option value="all">Alle</option>
+        <option value="rifle">Rifles</option>
+        <option value="pistol">Pistols</option>
+        <option value="sniper">Sniper</option>
+      </select>
+    </label>
+  </section>
 
-    <div id="results" class="card" style="margin-top:12px">
-      <div style="display:flex;align-items:center;gap:8px"><strong>Results</strong><div class="small">Sorted by biggest drop (top)</div></div>
-      <div id="tableWrap"></div>
-    </div>
+  <section id="marketTableContainer">
+    <table id="marketTable">
+      <thead>
+        <tr>
+          <th>Skin</th>
+          <th>Preis</th>
+          <th>Volumen</th>
+          <th>Median</th>
+          <th>Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td colspan="5">Loading...</td></tr>
+      </tbody>
+    </table>
+  </section>
 
-    <div id="detail" class="card" style="margin-top:12px;display:none">
-      <div style="display:flex;align-items:center;gap:12px">
-        <strong id="detailTitle"></strong>
-        <div id="detailPrice" class="small"></div>
-        <div style="margin-left:auto"><button id="closeDetail">Close</button></div>
-      </div>
-      <canvas id="detailChart" style="width:100%;height:260px;margin-top:12px"></canvas>
-    </div>
-  </div>
+  <section id="chartsContainer">
+    <h2>Preisverlauf (Demo Charts)</h2>
+    <canvas id="priceChart" width="800" height="200"></canvas>
+  </section>
+
+  <footer>
+    <p>CS2 Market Dashboard – Daten via Steam Community Market API</p>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-    const apiPath = '/api/analyze';
-
-    async function analyze(items){
-      const period = parseInt(document.getElementById('period').value || '7',10);
-      const limit = parseInt(document.getElementById('limit').value || '20',10);
-      const body = { items: items.slice(0, limit), period_days: period };
-      const r = await fetch(apiPath, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (!r.ok) { alert('Error analyzing: '+(await r.text())); return []; }
-      const json = await r.json();
-      return json.results || [];
-    }
-
-    function formatPrice(p){
-      if (p==null) return '—';
-      return p.toLocaleString(undefined, { style:'currency', currency:'EUR', maximumFractionDigits:2 });
-    }
-
-    function makeTable(results){
-      const wrap = document.getElementById('tableWrap');
-      if (!results || results.length===0) { wrap.innerHTML = '<div class="small">No results</div>'; return; }
-      const table = document.createElement('table');
-      const thead = document.createElement('thead');
-      thead.innerHTML = '<tr><th>#</th><th>Skin</th><th>Current</th><th>Old</th><th>% Change</th><th>Volume</th><th>Trend</th></tr>';
-      table.appendChild(thead);
-      const tbody = document.createElement('tbody');
-      results.forEach((r,i)=>{
-        const tr = document.createElement('tr');
-        tr.className = 'row-click';
-        const change = r.change_pct;
-        const changeCell = (change==null)?'—':(change.toFixed(2)+'%');
-        const changeClass = (change==null)?'':(change<=0?'price-bad':'price-good');
-        const vol = (r.points && r.points.length)? r.points.slice(-1)[0].volume : '—';
-        tr.innerHTML = `<td>${i+1}</td><td>${r.name}</td><td>${formatPrice(r.current_price)}</td><td>${formatPrice(r.old_price)}</td><td class="${changeClass}">${changeCell}</td><td>${vol}</td><td><canvas class="mini-chart" id="mini${i}"></canvas></td>`;
-        tr.addEventListener('click',()=>showDetail(r));
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      wrap.innerHTML = '';
-      wrap.appendChild(table);
-      results.forEach((r,i)=>{
-        const el = document.getElementById('mini'+i);
-        if (!el) return;
-        const ctx = el.getContext('2d');
-        const labels = (r.points||[]).map(p=>p.date);
-        const data = (r.points||[]).map(p=>p.price||0);
-        new Chart(ctx,{type:'line',data:{labels, datasets:[{data, pointRadius:0, tension:0.2}]}, options:{responsive:false,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:false}}}});
-      });
-    }
-
-    let currentDetailChart = null;
-    function showDetail(r){
-      document.getElementById('detail').style.display='block';
-      document.getElementById('detailTitle').textContent = r.name;
-      document.getElementById('detailPrice').textContent = 'Current: '+formatPrice(r.current_price)+'  •  Change: '+(r.change_pct==null?'—':r.change_pct.toFixed(2)+'%');
-      const ctx = document.getElementById('detailChart').getContext('2d');
-      const labels = (r.points||[]).map(p=>p.date);
-      const data = (r.points||[]).map(p=>p.price||0);
-      if (currentDetailChart) currentDetailChart.destroy();
-      currentDetailChart = new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Price',data,fill:true,tension:0.3}]}, options:{scales:{y:{beginAtZero:false}}}});
-    }
-
-    document.getElementById('closeDetail').addEventListener('click',()=>{ document.getElementById('detail').style.display='none'; });
-
-    document.getElementById('analyzeBtn').addEventListener('click', async ()=>{
-      const txt = document.getElementById('itemsInput').value.trim();
-      let items = txt? txt.split('\\n').map(s=>s.trim()).filter(Boolean) : sampleItems;
-      document.getElementById('analyzeBtn').textContent='Loading...';
-      try{
-        const res = await analyze(items);
-        makeTable(res);
-        window.latestResults = res;
-      }catch(e){ alert('Error'); console.error(e); }
-      document.getElementById('analyzeBtn').textContent='Analyze';
-    });
-
-    document.getElementById('loadSamples').addEventListener('click',()=>{ document.getElementById('itemsInput').value = sampleItems.join('\\n'); });
-
-    document.getElementById('exportCsv').addEventListener('click',()=>{
-      const res = window.latestResults || [];
-      if (!res.length) return alert('No results');
-      const rows = [['name','current_price','old_price','change_pct']];
-      res.forEach(r=> rows.push([r.name, r.current_price, r.old_price, r.change_pct]));
-      const csv = rows.map(r=> r.map(c=> typeof c==='string'? '"'+c.replace(/"/g,'""')+'"':c).join(',')).join('\\n');
-      const blob = new Blob([csv],{type:'text/csv'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href=url; a.download='cs2-market.csv'; a.click(); URL.revokeObjectURL(url);
-    });
-
-    const sampleItems = [
-      'AK-47 | Redline (Field-Tested)',
-      'M4A1-S | Printstream (Factory New)',
-      'AWP | Dragon Lore (Factory New)',
-      'Desert Eagle | Blaze (Factory New)'
-    ];
-
-    // Auto-load samples
-    document.addEventListener('DOMContentLoaded',()=>{ document.getElementById('itemsInput').value = sampleItems.join('\\n'); document.getElementById('analyzeBtn').click(); });
-  </script>
 </body>
 </html>
