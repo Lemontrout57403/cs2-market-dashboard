@@ -1,0 +1,61 @@
+/* Grundlayout */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #1b2838;
+  color: #c7d5e0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header */
+header {
+  background-color: #171a21;
+  padding: 20px;
+  text-align: center;
+}
+h1 { color: #66c0f4; margin: 0; }
+
+/* Filterbereich */
+#filters {
+  padding: 15px 20px;
+  background-color: #2a475e;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+#filters input, #filters select {
+  padding: 5px 8px;
+  font-size: 14px;
+}
+
+/* Tabelle */
+table {
+  width: 90%;
+  margin: 20px auto;
+  border-collapse: collapse;
+}
+thead {
+  background-color: #171a21;
+}
+th, td {
+  padding: 10px;
+  text-align: left;
+}
+tbody tr:nth-child(even) { background-color: #2a475e; }
+tbody tr:hover { background-color: #3a5f7a; cursor: pointer; }
+
+/* Charts */
+#chartsContainer {
+  width: 90%;
+  margin: 20px auto;
+  background-color: #2a475e;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Footer */
+footer {
+  background-color: #171a21;
+  text-align: center;
+  padding: 10px;
+}
