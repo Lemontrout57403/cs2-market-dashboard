@@ -1,1 +1,22 @@
-
+[
+  { "name": "AK-47 | Redline (Field-Tested)", "rarity": "Covert", "image": "assets/images/ak47_redline.jpg" },
+  { "name": "AK-47 | Neon Rider (Minimal Wear)", "rarity": "Covert", "image": "assets/images/ak47_neonrider.jpg" },
+  { "name": "M4A4 | Howl (Factory New)", "rarity": "Covert", "image": "assets/images/m4a4_howl.jpg" },
+  { "name": "AWP | Asiimov (Battle-Scarred)", "rarity": "Covert", "image": "assets/images/awp_asiimov.jpg" },
+  { "name": "Desert Eagle | Blaze (Factory New)", "rarity": "Classified", "image": "assets/images/deagle_blaze.jpg" },
+  { "name": "USP-S | Kill Confirmed (Minimal Wear)", "rarity": "Classified", "image": "assets/images/usp_killconfirmed.jpg" },
+  { "name": "Glock-18 | Fade (Factory New)", "rarity": "Covert", "image": "assets/images/glock_fade.jpg" },
+  { "name": "SSG 08 | Dragonfire (Minimal Wear)", "rarity": "Covert", "image": "assets/images/ssg_dragonfire.jpg" },
+  { "name": "MP9 | Starlight Protector (Factory New)", "rarity": "Covert", "image": "assets/images/mp9_starlight.jpg" },
+  { "name": "FAMAS | Mecha Industries (Minimal Wear)", "rarity": "Classified", "image": "assets/images/famas_mecha.jpg" },
+  { "name": "P90 | Asiimov (Field-Tested)", "rarity": "Classified", "image": "assets/images/p90_asiimov.jpg" },
+  { "name": "M4A1-S | Hyper Beast (Minimal Wear)", "rarity": "Covert", "image": "assets/images/m4a1s_hyperbeast.jpg" },
+  { "name": "Galil AR | Chatterbox (Minimal Wear)", "rarity": "Classified", "image": "assets/images/galil_chatterbox.jpg" },
+  { "name": "MAC-10 | Neon Rider (Minimal Wear)", "rarity": "Restricted", "image": "assets/images/mac10_neonrider.jpg" },
+  { "name": "MP7 | Sunbaked (Factory New)", "rarity": "Consumer Grade", "image": "assets/images/mp7_sunbaked.jpg" },
+  { "name": "UMP-45 | Primal Saber (Field-Tested)", "rarity": "Restricted", "image": "assets/images/ump_primalsaber.jpg" },
+  { "name": "PP-Bizon | Judgement of Anubis (Minimal Wear)", "rarity": "Restricted", "image": "assets/images/bizon_anubis.jpg" },
+  { "name": "Nova | Hyper Beast (Field-Tested)", "rarity": "Covert", "image": "assets/images/nova_hyperbeast.jpg" },
+  { "name": "MAG-7 | Bulldozer (Minimal Wear)", "rarity": "Classified", "image": "assets/images/mag7_bulldozer.jpg" },
+  { "name": "Sawed-Off | Serenity (Factory New)", "rarity": "Restricted", "image": "assets/images/sawedoff_serenity.jpg" }
+]
